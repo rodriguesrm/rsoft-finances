@@ -1,1 +1,3 @@
-# rsoft-finances
+# RSoft.Finances
+
+Personal financial control system
