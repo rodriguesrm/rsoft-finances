@@ -4,47 +4,44 @@ using RSoft.Framework.Cross.Abstractions;
 using RSoft.Framework.Cross.Entities;
 using RSoft.Framework.Domain.Contracts;
 using RSoft.Framework.Domain.Entities;
-using RSoft.Framework.Domain.ValueObjects;
 using System;
 
 namespace RSoft.Finances.Domain.Entities
 {
 
-    /// <summary>
-    /// User of the eco-system applications
-    /// </summary>
-    public class User : EntityIdAuditBase<Guid, User>, IEntity, IAuditAuthor<Guid>, IActive
+    public class Account : EntityIdNameAuditBase<Guid, Account>, IEntity, IAuditAuthor<Guid>, IActive
     {
 
         #region Constructors
 
         /// <summary>
-        /// Create a new user instance
+        /// Create a new Account instance
         /// </summary>
-        public User() : base(Guid.NewGuid())
+        public Account() : base(Guid.NewGuid(), null)
         {
             Initialize();
         }
 
         /// <summary>
-        /// Create a new user instance
+        /// Create a new Account instance
         /// </summary>
-        /// <param name="id">User id value</param>
-        public User(Guid id) : base(id)
+        /// <param name="id">Account id value</param>
+        public Account(Guid id) : base(id, null)
         {
             Initialize();
         }
 
         /// <summary>
-        /// Create a new user instance
+        /// Create a new Account instance
         /// </summary>
-        /// <param name="id">User id text</param>
+        /// <param name="id">Account id text</param>
         /// <exception cref="System.ArgumentNullException">The exception that is thrown when a null reference (Nothing in Visual Basic) is passed to a method that does not accept it as a valid argument.</exception>
         /// <exception cref="System.FormatException">The exception that is thrown when the format of an argument is invalid, or when a composite format string is not well formed.</exception>
         /// <exception cref="System.OverflowException">The exception that is thrown when an arithmetic, casting, or conversion operation in a checked context results in an overflow.</exception>
-        public User(string id) : base()
+        public Account(string id) : base()
         {
             Id = new Guid(id);
+            Initialize();
         }
 
         #endregion
@@ -57,28 +54,18 @@ namespace RSoft.Finances.Domain.Entities
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Document number (withou mask)
+        /// Account description
         /// </summary>
-        public string Document { get; set; }
-
-        /// <summary>
-        /// User full name
-        /// </summary>
-        public Name Name { get; set; }
-
-        /// <summary>
-        /// User's date of birth
-        /// </summary>
-        public DateTime? BornDate { get; set; }
-
-        /// <summary>
-        /// User e-mail
-        /// </summary>
-        public Email Email { get; set; }
+        public string Description { get; set; }
 
         #endregion
 
         #region Navigation Lazy
+
+        /// <summary>
+        /// Category data
+        /// </summary>
+        public Category Category { get; set; }
 
         #endregion
 
@@ -101,18 +88,14 @@ namespace RSoft.Finances.Domain.Entities
         /// </summary>
         public override void Validate()
         {
-            IStringLocalizer<User> localizer = ServiceActivator.GetScope().ServiceProvider.GetService<IStringLocalizer<User>>();
+            IStringLocalizer<Account> localizer = ServiceActivator.GetScope().ServiceProvider.GetService<IStringLocalizer<Account>>();
             if (CreatedAuthor != null) AddNotifications(CreatedAuthor.Notifications);
             if (ChangedAuthor != null) AddNotifications(ChangedAuthor.Notifications);
-            AddNotifications(Name.Notifications);
-            AddNotifications(Email.Notifications);
-            AddNotifications(new RequiredValidationContract<string>(Email?.Address, $"Email.{nameof(Email.Address)}", localizer["EMAIL_REQUIRED"]).Contract.Notifications);
-            AddNotifications(new PastDateValidationContract(BornDate, "Born date", localizer["BORN_DATE_REQUIRED"]).Contract.Notifications);
-            AddNotifications(new BrasilianCpfValidationContract(Document, nameof(Document), true).Contract.Notifications);
+            AddNotifications(new SimpleStringValidationContract(Name, nameof(Name), true, 3, 50).Contract.Notifications);
+            AddNotifications(new SimpleStringValidationContract(Description, nameof(Description), true, 3, 150).Contract.Notifications);
         }
 
         #endregion
 
     }
-
 }
